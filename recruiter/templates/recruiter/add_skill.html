@@ -1,0 +1,17 @@
+<form action="{% url 'add_skill' %}" method="post" id="addSkillForm">
+        {% csrf_token %}
+        {{form.errors}}
+        {% for field in form %}
+            <div class="field_container">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.help_text %}
+                    <span class="help"> {{ field.help_text }} </span>
+                {% endif %}
+                {{ field.errors }}
+            </div>
+        {% endfor %}
+
+        <button type="submit">+ Add Skill</button>
+
+    </form>

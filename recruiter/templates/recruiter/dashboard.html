@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Job Portal</title>
+    <style>
+        button{
+            padding: 10px;
+        }
+
+        b{
+            display: block;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+
+    <button><a href="{% url 'logout' %}">logout</a></button>
+
+    {% if user.user_type == "applicant" %}
+        <h2>welcome {{ user.first_name }}, you are an applicant</h2>
+        <a href="{% url 'my_applications' %}"><button>view my applications</button></a>
+
+    {% elif user.user_type == "representative" %}
+        <h2>welcome {{ user.first_name }}, you are a representative {% if user.representative_profile.company %} of {{user.representative_profile.company}} {% endif %}</h2>
+
+        {% if user.representative_profile and not user.representative_profile.company %}
+            <p><a href="{% url 'company_creation' %}">create company</a></p>
+        {% endif %}
+
+        <a href="{% url 'add_job' %}"><button>add a new job</button></a>
+    
+    {% endif %}
+
+    <h2>All available jobs</h2>
+    {% for job in jobs %}
+        <b><a href="{% url 'view_job' job.slug %}">{{ job.title }}</a> by {{ job.company }}</b>
+    {% endfor %}
+
+</body>
+</html>

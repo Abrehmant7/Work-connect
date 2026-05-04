@@ -1,0 +1,120 @@
+<!-- {% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Job</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f4f4;
+            padding: 30px;
+        }
+
+        .container {
+            width: 650px;
+            margin: auto;
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 15px;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-top: 5px;
+            font-size: 15px;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        .skills-box {
+            margin-top: 10px;
+            background: #f7f7f7;
+            padding: 12px;
+            border-radius: 4px;
+            max-height: 180px;
+            overflow-y: auto;
+        }
+
+        .skill-item {
+            margin-bottom: 6px;
+        }
+
+        .btn {
+            margin-top: 20px;
+            padding: 12px 18px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn:hover {
+            background: #0069d9;
+        }
+
+        .error {
+            color: #c40000;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+        }
+
+        .success {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+
+        .error-msg {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Add Job</h2>
+
+    Django messages -->
+    <!-- {% if messages %}
+        {% for msg in messages %}
+            <div class="message {% if msg.tags %}{{ msg.tags }}{% endif %}">
+                {{ msg }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="post" action="{% url 'add_job' %}">
+        {% csrf_token %}
+
+        

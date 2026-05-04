@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>add post</title>
+</head>
+<body>
+    <form action="{% url 'add_job' %}" method="post" id="mainPostForm">
+        {% csrf_token %}
+        {{form.errors}}
+        {% for field in form %}
+            <div class="field_container">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.help_text %}
+                    <span class="help"> {{ field.help_text }} </span>
+                {% endif %}
+                {{ field.errors }}
+            </div>
+        {% endfor %}
+
+        <button type="submit">send</button>
+    </form>
+
+    <h4>Can't find a skill? Add a new one</h4>
+    <form action="{% url 'skill_redirect' %}" method="post" id="addSkillForm">
+        <input type="hidden" name="main_form_data" id="main_form_data" value="">
+        {% csrf_token %}
+        
+
+        <button type="submit">+ Add Skill</button>
+
+    </form>
+
+    <script>
+// This is the MINIMAL JavaScript needed (only for capturing form data)
+// Without this, you cannot capture what user typed in main form
+document.getElementById('addSkillForm').addEventListener('submit', function() {
+    // Before submitting the add-skill form, capture all main form data
+    const mainForm = document.getElementById('mainPostForm');
+    const formData = new FormData(mainForm);
+    const urlEncodedData = new URLSearchParams(formData).toString();
+    
+    // Set the hidden field value
+    document.getElementById('main_form_data').value = urlEncodedData;
+    
+    // Form will now submit with the captured data
+});
+</script>
+</body>
+</html>

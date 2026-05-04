@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <style>
+        button{
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <form action="{% url 'representative_profile' %}" method="post">
+        {% csrf_token %}
+        {{form.errors}}
+        {% for field in form %}
+            <div class="field_container">
+                {{ field.label_tag }}
+                {{ field }}
+                {% if field.help_text %}
+                    <span class="help"> {{ field.help_text }} </span>
+                {% endif %}
+                {{ field.errors }}
+            </div>
+        {% endfor %}
+
+        <button type="submit">send</button>
+    </form>
+</body>
+</html>
