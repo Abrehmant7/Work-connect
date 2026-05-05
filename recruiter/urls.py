@@ -17,6 +17,8 @@ urlpatterns = [
 
     path("company_creation", views.create_company, name="company_creation"),
     path("add_job", views.addJob, name="add_job"),
+    path("all_jobs_created", views.view_all_jobs_created, name="all_jobs_created"),
+    path("applications_for_job/<int:job_id>", views.view_applications_for_job, name="applications_for_job"),
 
     path("skill_redirect", views.skillRedirect, name="skill_redirect"),
     path("add_skill", views.addSkill, name="add_skill"),

@@ -17,6 +17,14 @@
 </head>
 <body>
 
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
     <button><a href="{% url 'logout' %}">logout</a></button>
 
     {% if user.user_type == "applicant" %}
@@ -30,7 +38,8 @@
             <p><a href="{% url 'company_creation' %}">create company</a></p>
         {% endif %}
 
-        <a href="{% url 'add_job' %}"><button>add a new job</button></a>
+        <a href="{% url 'add_job' %}"><button>Add a new job</button></a>
+        <a href="{% url 'all_jobs_created' %}"><button>All Jobs created</button></a>
     
     {% endif %}
 

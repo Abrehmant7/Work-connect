@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Applications</title>
+</head>
+<body>
+
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <h1>{{ job.title }}  ({{ job.published_at }})</h1>
+    <p>{{ job.desctiption }}</p>
+    <p>{{ job.salary }}</p>
+    <h3>Skills Required</h3>
+    <ul>
+        {% for skill in job.skills_required.all %}
+            <li>{{ skill.name }}</li>  <!-- Assuming Skill has a 'name' field -->
+        {% empty %}
+            <li>No skills listed for this position</li>
+        
+        {% endfor %}
+    </ul>
+
+    <h1>Applications received for Job</h1>
+
+    {% for application in applications %}
+        <h2><a href="#">{{ application.applicant.user.get_full_name }} ({{ application.applicant.user.experience_years }} years of experience)</a></h2>
+    {% endfor %}
+    
+</body>
+</html>
