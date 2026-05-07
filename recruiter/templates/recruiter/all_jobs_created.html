@@ -17,8 +17,18 @@
 
     <h1>Click on any post to see details and applications</h1>
 
+    <h1>Active Jobs</h1>
     {% for job in jobs %}
-        <h2><a href="{% url 'applications_for_job' job.id %}">{{ job.title }} ({{ job.published_at }})</a></h2>
+        {% if job.is_active %}
+            <h2><a href="{% url 'applications_for_job' job.id %}">{{ job.title }} ({{ job.published_at }})</a></h2>
+        {% endif %}
+    {% endfor %}
+
+    <h1>Filled or closed Jobs</h1>
+    {% for job in jobs %}
+        {% if not job.is_active %}
+            <h2><a href="{% url 'applications_for_job' job.id %}">{{ job.title }} ({{ job.published_at }})</a></h2>
+        {% endif %}
     {% endfor %}
 </body>
 </html>

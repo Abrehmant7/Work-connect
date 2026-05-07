@@ -440,6 +440,13 @@ class Post(TimeStampedModel):
         self.is_active = False
         self.save()
 
+    def fill_post(self):
+        """Professional: Model method for business operation"""
+        self.status = 'filled'
+        self.closed_at = timezone.now()
+        self.is_active = False
+        self.save()
+
 
 class Proposal(TimeStampedModel):
     """
@@ -605,12 +612,9 @@ class Application(TimeStampedModel):
     STATUS_CHOICES = [
         ('applied', 'Applied'),
         ('reviewing', 'Under Review'),
-        ('shortlisted', 'Shortlisted'),
-        ('interviewing', 'Interviewing'),
-        ('offered', 'Job Offered'),
         ('rejected', 'Rejected'),
         ('withdrawn', 'Withdrawn'),
-        ('hired', 'Hired'),
+        ('accepted', 'Accepted'),
     ]
     
     applicant = models.ForeignKey(
@@ -665,7 +669,10 @@ class Application(TimeStampedModel):
     
     @property
     def is_active(self):
-        return self.status in ['applied', 'reviewing', 'shortlisted', 'interviewing']
+        return self.status in ['applied', 'reviewing']
+    
+    def is_accepted(self):
+        return self.status == 'accepted'
     
     def update_status(self, new_status):
         """Professional: Update application status"""

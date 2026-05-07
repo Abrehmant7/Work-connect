@@ -31,10 +31,5 @@
     <p><b>Proposed Salary:</b> {{ application.expected_salary }}</p>
     <h1>Cover Letter:</h1>
     <p>{{ application.cover_letter }}</p>
-
-    {% if application.status != 'accepted' %}
-        <a href="{% url 'accept_job_application' application.id %}"><button>Accept Application</button></a>
-    {% endif %}
-    
 </body>
 </html>

@@ -19,6 +19,8 @@ urlpatterns = [
     path("add_job", views.addJob, name="add_job"),
     path("all_jobs_created", views.view_all_jobs_created, name="all_jobs_created"),
     path("applications_for_job/<int:job_id>", views.view_applications_for_job, name="applications_for_job"),
+    path("application_detail/<int:application_id>", views.view_application_detail, name="application_detail"),
+    path("accept_job_application/<int:application_id>", views.accept_job_application, name="accept_job_application"),
 
     path("skill_redirect", views.skillRedirect, name="skill_redirect"),
     path("add_skill", views.addSkill, name="add_skill"),
@@ -26,5 +28,5 @@ urlpatterns = [
     path("<slug:slug>/detail", views.view_job, name='view_job'),
     path("<int:job_pk>", views.apply_to_job, name="job_application"),
     path("my_applications", views.view_my_applications, name="my_applications"),
-    path("application_detail/<int:pk>", views.view_my_application_detail, name="my_application_detail")
+    path("my_application_detail/<int:pk>", views.view_my_application_detail, name="my_application_detail")
 ]

@@ -16,7 +16,7 @@
     {% endif %}
 
     <h1>{{ job.title }}  ({{ job.published_at }})</h1>
-    <p>{{ job.desctiption }}</p>
+    <p>{{ job.description }}</p>
     <p>{{ job.salary }}</p>
     <h3>Skills Required</h3>
     <ul>
@@ -28,11 +28,28 @@
         {% endfor %}
     </ul>
 
-    <h1>Applications received for Job</h1>
 
+<h1>Applications received for Job:</h1>
+
+{% if accepted_application %}
+    <h2>Application accepted for this job:</h2>
+    <h2>
+        <a href="{% url 'application_detail' accepted_application.pk %}">
+            {{ accepted_application.applicant.user.get_full_name }} 
+            ({{ accepted_application.applicant.experience_years }} years of experience)
+        </a>
+    </h2>
+{% else %}
+    {# Show all applications since no accepted one exists #}
     {% for application in applications %}
-        <h2><a href="#">{{ application.applicant.user.get_full_name }} ({{ application.applicant.user.experience_years }} years of experience)</a></h2>
+        <h2>
+            <a href="{% url 'application_detail' application.pk %}">
+                {{ application.applicant.user.get_full_name }} 
+                ({{ application.applicant.experience_years }} years of experience)
+            </a>
+        </h2>
     {% endfor %}
+{% endif %}
     
 </body>
 </html>

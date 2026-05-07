@@ -18,6 +18,9 @@ logger = logging.getLogger(__name__)
 
 # Create your views here.
 
+######################### list for statuses that make a job application valid###########################
+ACTIVE_STATUSES = ['applied', 'reviewing', 'shortlisted', 'interviewing']
+
 def is_representative(user):
     return user.user_type == 'representative'
 
@@ -262,7 +265,7 @@ def addSkill(request):
 
 
 ######################### view jobs created by the representative  ###################################
-login_required(login_url='login')
+@login_required(login_url='login')
 def view_all_jobs_created(request):
     if not is_representative(request.user):
         messages.error(request, "You are not allowed to access this page!")
@@ -274,12 +277,12 @@ def view_all_jobs_created(request):
         messages.error(request, "You have to create profile first!")
         return redirect("representative_profile")
     
-    jobs = Post.objects.filter(post_type = 'job', is_active = True, status = 'published' , created_by = request.user).order_by('-created_at')
+    jobs = Post.objects.filter(post_type = 'job' , created_by = request.user, status__in = ['filled', 'published']).order_by('-created_at')
 
     return render(request, 'recruiter/all_jobs_created.html', {'jobs':jobs})
 
-######################## applications for a particular job   #########################################
-login_required(login_url='login')
+
+@login_required(login_url='login')
 def view_applications_for_job(request, job_id):
 
     if not is_representative(request.user):
@@ -292,15 +295,44 @@ def view_applications_for_job(request, job_id):
         messages.error(request, "You have to create profile first!")
         return redirect("representative_profile")
 
-    job = get_object_or_404(Post, post_type = 'job', pk = job_id, is_active = True, status = 'published', created_by = request.user)
+    job = get_object_or_404(Post, post_type = 'job', pk = job_id, created_by = request.user)
 
-    applications = job.applications.all()
+    # Get the first accepted application (if any)
+    accepted_application = job.applications.filter(status='accepted').first()
+    
+    # If there's an accepted application, show only that one
+    # Otherwise show all applications
+    if accepted_application:
+        applications = []  # Don't show other applications
+    else:
+        applications = job.applications.all()
 
-    return render(request, "recruiter/applications_for_job.html", {'applications':applications, 'job':job})
+
+    return render(request, "recruiter/applications_for_job.html", {'applications':applications,'accepted_application':accepted_application, 'job':job})
 
 
-######################### list for statuses that make a job application valid###########################
-ACTIVE_STATUSES = ['applied', 'reviewing', 'shortlisted', 'interviewing']
+@login_required(login_url='login')
+def view_application_detail(request, application_id):
+
+    if not is_representative(request.user):
+        messages.error(request, "You are not allowed to access this page!")
+        return redirect("all_jobs_created")
+    
+    profile = getattr(request.user, 'representative_profile', None)
+
+    if not profile:
+        messages.error(request, "You have to create profile first!")
+        return redirect("representative_profile")
+    
+    # previously, any representative can view this application (data leak)
+    # application = get_object_or_404(Application, pk = application_id)
+
+    application = get_object_or_404(Application, pk = application_id, job__created_by = request.user)
+
+    return render(request, 'recruiter/application_detail.html', {'application':application})
+
+
+######################################  Job Application functions   ############################################
 
 @login_required(login_url='login')
 def apply_to_job(request, job_pk):
@@ -352,8 +384,8 @@ def view_my_applications(request):
     if not has_applicant_profile(request.user):
         return redirect('applicant_profile')
     
-    active_statuses = ['applied', 'reviewing', 'shortlisted', 'interviewing']
-    applications = Application.objects.filter(applicant = request.user.applicant_profile , status__in = active_statuses ).order_by('-applied_at')
+    
+    applications = Application.objects.filter(applicant = request.user.applicant_profile).order_by('-applied_at')
 
     return render(request, 'recruiter/my_applications.html', {'applications':applications})
 
@@ -367,10 +399,10 @@ def view_my_application_detail(request, pk):
         return redirect('applicant_profile')
     
     
-    application = get_object_or_404(Application, pk = pk, applicant = request.user.applicant_profile , status__in = ACTIVE_STATUSES )
+    application = get_object_or_404(Application, pk = pk, applicant = request.user.applicant_profile )
 
     
-    return render(request, 'recruiter/application_detail.html', {'application':application})
+    return render(request, 'applicant/application_detail.html', {'application':application})
 
 
 
@@ -379,7 +411,54 @@ def accept_job_application(request, application_id):
 
     if not is_representative(request.user):
         messages.error(request, "You are not allowed to access this page!")
-        return redirect("")
+        return redirect("/")
+
+    profile = getattr(request.user, 'representative_profile', None)
+
+    if not profile:
+        messages.info(request, "You don't have a profile!")
+        return redirect("representative_profile")
+    
+    application = get_object_or_404(Application, pk = application_id, status__in = ACTIVE_STATUSES)
+
+    job = application.job
+
+    if job.created_by != request.user:
+        messages.error(request, "Job this application is for isn't created by you!")
+        return redirect("all_jobs_created")
+    
+    if job.post_type != 'job' or job.status != 'published' or not job.is_active:
+        messages.error(request, "Job this application is for has issues!")
+        return redirect("all_jobs_created")
+    
+    if not application.is_active:
+        messages.error(request, "Application is no more active!")
+        return redirect("all_jobs_created")
+    
+    all_applications = job.applications.all()
+
+    # previously, performance improvement
+    # for a in all_applications:
+    #     if a.is_accepted():
+    #         messages.error(request, "An application for this job is already accepted!")
+    #         return redirect("all_jobs_created")
+        
+    if job.applications.filter(status='accepted').exists():
+        messages.error(request, "An application for this job is already accepted!")
+        return redirect("all_jobs_created")
+        
+    application.update_status('accepted')
+
+    for a in all_applications:
+        if a == application:
+            continue
+        else:
+            a.update_status('rejected')
+
+    job.fill_post()
+
+    messages.success(request, "Application for the job accepted!")
+    return redirect("applications_for_job", job_id = job.pk)
 
 
 
