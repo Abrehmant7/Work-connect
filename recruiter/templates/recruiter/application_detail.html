@@ -1,13 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Application Details</title>
-</head>
-<body>
+{% extends "recruiter/base.html" %}
 
-    {% if messages %}
+{% block title %} Application Details {% endblock %}
+
+{% block content %}
+
+{% if messages %}
         <ul class="messages">
             {% for message in messages %}
             <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
@@ -35,6 +32,5 @@
     {% if application.status != 'accepted' %}
         <a href="{% url 'accept_job_application' application.id %}"><button>Accept Application</button></a>
     {% endif %}
-    
-</body>
-</html>
+
+{% endblock %}

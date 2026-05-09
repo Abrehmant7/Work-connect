@@ -1,12 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>add post</title>
-</head>
-<body>
-    <form action="{% url 'add_job' %}" method="post" id="mainPostForm">
+{% extends "recruiter/base.html" %}
+
+{% block title %} add post {% endblock %}
+
+{% block content %}
+
+<form action="{% url 'add_job' %}" method="post" id="mainPostForm">
         {% csrf_token %}
         {{form.errors}}
         {% for field in form %}
@@ -48,5 +46,5 @@ document.getElementById('addSkillForm').addEventListener('submit', function() {
     // Form will now submit with the captured data
 });
 </script>
-</body>
-</html>
+
+{% endblock %}

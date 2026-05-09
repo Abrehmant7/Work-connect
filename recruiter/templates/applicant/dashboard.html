@@ -1,0 +1,23 @@
+{% extends "applicant/base.html" %}
+     
+    {% block title %} Dashboard {% endblock %}
+
+
+    {% block content %} 
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <h2>welcome {{ user.first_name }}, you are an applicant</h2>
+        <a href="{% url 'my_applications' %}"><button>view my applications</button></a>
+
+        <h2>All available jobs</h2>
+        {% for job in jobs %}
+            <b><a href="{% url 'view_job' job.slug %}">{{ job.title }}</a> by {{ job.company }}</b>
+        {% endfor %}
+
+     {% endblock %}

@@ -1,19 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Job Detail</title>
-    <style>
-        
-        button{
+{% extends "recruiter/base.html" %}
+
+{% block title %} Job Detail {% endblock %}
+
+{% block style %}
+<style>
+button{
             padding: 5px;
             margin: 10px;
         }
-    </style>
-</head>
-<body>
-        <h1>{{ job.title }}</h1>
+</style>
+{% endblock %}
+
+{% block content %}
+
+<h1>{{ job.title }}</h1>
 <p><strong>{{ job.published_at|date:"F j, Y" }}</strong></p>  <!-- Changed from post_date -->
 <p>{{ job.description }}</p>
 
@@ -28,5 +28,5 @@
 
     <a href="{% url 'job_application' job.id %}"><button>Apply for job</button></a>
 </ul>
-</body>
-</html>
+
+{% endblock %}

@@ -38,7 +38,12 @@ def index(request):
     jobs = Post.objects.filter(post_type = 'job',
                                status = 'published',
                                is_active = True).order_by('-created_at')
-    return render(request, "recruiter/dashboard.html", {'jobs':jobs})
+    
+    if is_applicant(request.user):
+        return render(request, "applicant/dashboard.html", {'jobs':jobs})
+    
+    elif is_representative(request.user):
+        return render(request, "recruiter/dashboard.html")
 
 @login_required(login_url='login')
 def view_job(request, slug):
@@ -142,7 +147,7 @@ def complete_applicant_profile(request):
     else:
         form = ApplicantProfileForm()
 
-    return render(request, "recruiter/applicant_profile.html", {'form':form})
+    return render(request, "applicant/applicant_profile.html", {'form':form})
 
 
 
@@ -373,7 +378,7 @@ def apply_to_job(request, job_pk):
     else:
         form = JobApplicationForm()
 
-    return render(request, "recruiter/application_form.html", {'form':form, 'job':job})
+    return render(request, "applicant/application_form.html", {'form':form, 'job':job})
 
 
 @login_required(login_url='login')
@@ -387,7 +392,7 @@ def view_my_applications(request):
     
     applications = Application.objects.filter(applicant = request.user.applicant_profile).order_by('-applied_at')
 
-    return render(request, 'recruiter/my_applications.html', {'applications':applications})
+    return render(request, 'applicant/my_applications.html', {'applications':applications})
 
 
 @login_required(login_url='login')

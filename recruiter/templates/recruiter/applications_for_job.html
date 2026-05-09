@@ -1,13 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Applications</title>
-</head>
-<body>
+{% extends "recruiter/base.html" %}
 
-    {% if messages %}
+{% block title %} Applications {% endblock %}
+
+{% block content %}
+
+{% if messages %}
         <ul class="messages">
             {% for message in messages %}
             <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
@@ -50,6 +47,5 @@
         </h2>
     {% endfor %}
 {% endif %}
-    
-</body>
-</html>
+
+{% endblock %}

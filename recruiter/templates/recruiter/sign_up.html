@@ -1,17 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <style>
-        div{
+{% extends "recruiter/base.html" %}
+
+{% block title %} Document {% endblock %}
+
+{% block style %}
+<style>
+div{
             margin: 15px;
         }
-    </style>
-</head>
-<body>
-    <!-- signup.html -->
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- signup.html -->
 <form method="post">
     {% csrf_token %}
 
@@ -63,5 +64,5 @@
     <button type="submit">Sign Up</button>
     <p>Already registered? <a href="{% url 'login' %}">login</a></p>
 </form>
-</body>
-</html>
+
+{% endblock %}

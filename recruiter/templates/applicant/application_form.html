@@ -1,9 +1,8 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile</title>
+{% extends "applicant/base.html" %}
+
+{% block tittle %} Create Application {% endblock %}
+
+{% block style %}
     <style>
         button{
             padding: 10px;
@@ -13,9 +12,10 @@
             margin: 10px;
         }
     </style>
-</head>
-<body>
-    <form action="{% url 'applicant_profile' %}" method="post" enctype="multipart/form-data">
+{% endblock %}
+  
+{% block content %}
+    <form action="{% url 'job_application' job.id %}" method="post">
         {% csrf_token %}
         {{form.errors}}
         {% for field in form %}
@@ -28,8 +28,8 @@
                 {{ field.errors }}
             </div>
         {% endfor %}
+            <button type="submit">Create</button>
 
-        <button type="submit">send</button>
     </form>
-</body>
-</html>
+{% endblock %}
+  

@@ -1,17 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>login</title>
-    <style>
-        #submit{
+{% extends "recruiter/base.html" %}
+
+{% block title %} login {% endblock %}
+
+{% block style %}
+<style>
+#submit{
             padding: 10px;
         }
-    </style>
-</head>
-<body>
-    <form action="{% url 'login' %}" method="post">
+</style>
+{% endblock %}
+
+{% block content %}
+
+<form action="{% url 'login' %}" method="post">
          {% csrf_token %}
 
         {% if error %}
@@ -32,5 +33,5 @@
         <input type="submit" value="login" id="submit">
         <p>Not registered? <a href="{% url 'sign_up' %}">sign_up</a></p>
     </form>
-</body>
-</html>
+
+{% endblock %}

@@ -1,17 +1,18 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile</title>
-    <style>
-        button{
+{% extends "recruiter/base.html" %}
+
+{% block title %} Profile {% endblock %}
+
+{% block style %}
+<style>
+button{
             padding: 10px;
         }
-    </style>
-</head>
-<body>
-    <form action="{% url 'representative_profile' %}" method="post">
+</style>
+{% endblock %}
+
+{% block content %}
+
+<form action="{% url 'representative_profile' %}" method="post">
         {% csrf_token %}
         {{form.errors}}
         {% for field in form %}
@@ -27,5 +28,5 @@
 
         <button type="submit">send</button>
     </form>
-</body>
-</html>
+
+{% endblock %}

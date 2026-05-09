@@ -1,21 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Company</title>
-    <style>
-        button{
+{% extends "recruiter/base.html" %}
+
+{% block title %} Company {% endblock %}
+
+{% block style %}
+<style>
+button{
             padding: 10px;
         }
 
         .field_container{
             margin: 10px;
         }
-    </style>
-</head>
-<body>
-    <form action="{% url 'company_creation' %}" method="post">
+</style>
+{% endblock %}
+
+{% block content %}
+
+<form action="{% url 'company_creation' %}" method="post">
         {% csrf_token %}
         {{form.errors}}
         {% for field in form %}
@@ -31,5 +32,5 @@
             <button type="submit">Create</button>
 
     </form>
-</body>
-</html>
+
+{% endblock %}

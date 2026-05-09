@@ -1,13 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All jobs</title>
-</head>
-<body>
+{% extends "recruiter/base.html" %}
 
-    {% if messages %}
+{% block title %} All jobs {% endblock %}
+
+{% block content %}
+
+{% if messages %}
         <ul class="messages">
             {% for message in messages %}
             <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
@@ -30,5 +27,5 @@
             <h2><a href="{% url 'applications_for_job' job.id %}">{{ job.title }} ({{ job.published_at }})</a></h2>
         {% endif %}
     {% endfor %}
-</body>
-</html>
+
+{% endblock %}
