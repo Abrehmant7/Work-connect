@@ -13,7 +13,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, authenticate
 from django.http import HttpResponseBadRequest
-
+from functools import wraps
 logger = logging.getLogger(__name__)
 
 # Create your views here.
@@ -33,6 +33,71 @@ def has_applicant_profile(user):
 def has_representative_profile(user):
     return hasattr(user, 'representative_profile')
 
+def representative_required(view_func = None, redirect_url = "/", message = "Access denied"):
+    if view_func is None:
+        # Called with parameters
+        return lambda actual_view: representative_required(
+            actual_view, redirect_url, message
+        )
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):  
+        if not is_representative(request.user):
+            error_msg = message or "You are not allowed to access this page!"
+            messages.error(request, error_msg)
+            return redirect(redirect_url)
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def representative_profile_required(view_func = None, redirect_url = "/", message = "Access denied"):
+    if view_func is None:
+        return lambda actual_view: representative_profile_required(
+            actual_view, redirect_url, message
+        )
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        profile = getattr(request.user, 'representative_profile', None)
+
+        if not profile:
+            error_msg = message or "You have to create profile first!"
+            messages.error(request, error_msg)
+            return redirect("representative_profile")
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def applicant_required(view_func = None, redirect_url = "/", message = "Access denied"):
+    if view_func is None:
+        return lambda actual_view: applicant_required(
+            actual_view, redirect_url, message
+        )
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        if not is_applicant(request.user):
+            error_msg = message or "You are not allowed to access this page!"
+            messages.error(request, error_msg)
+            return redirect(redirect_url)
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def applicant_profile_required(view_func = None, redirect_url = "/", message = "Access denied"):
+    if view_func is None:
+        return lambda actual_view: applicant_profile_required(
+            actual_view, redirect_url, message
+        )
+    @wraps(view_func)
+    def wrapper(request, *args, **kwargs):
+        profile = getattr(request.user, 'applicant_profile', None)
+
+        if not profile:
+            error_msg = message or "You have to create profile first!"
+            messages.error(request, error_msg)
+            return redirect("applicant_profile")
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
 @login_required(login_url='login')
 def index(request):
     jobs = Post.objects.filter(post_type = 'job',
@@ -44,6 +109,7 @@ def index(request):
     
     elif is_representative(request.user):
         return render(request, "recruiter/dashboard.html")
+
 
 @login_required(login_url='login')
 def view_job(request, slug):
@@ -85,11 +151,11 @@ def logIn(request):
 
             if user.user_type == 'applicant':
                 if not hasattr(user, 'applicant_profile'):
-                    redirect("applicant_profile")
+                    return redirect("applicant_profile")
                 
             elif user.user_type == "representative":
                 if not hasattr(user, 'representative_profile'):
-                    redirect("representative_profile")
+                    return redirect("representative_profile")
 
             return redirect("/")
         
@@ -105,7 +171,9 @@ def logOut(request):
 
 
 @login_required(login_url='login')
+@representative_required
 def complete_representative_profile(request):
+    # if the user already has a profile
     if has_representative_profile(request.user):
         redirect('/')
 
@@ -128,6 +196,7 @@ def complete_representative_profile(request):
 
 
 @login_required(login_url='login')
+@applicant_required
 def complete_applicant_profile(request):
     if has_applicant_profile(request.user):
         return redirect("/")
@@ -152,11 +221,12 @@ def complete_applicant_profile(request):
 
 
 @login_required(login_url='login')
+@representative_required
+@representative_profile_required
 def create_company(request):
-    if not is_representative(request.user):
-        return HttpResponse("You are not allowed to view this page!")
     
     if request.user.representative_profile.company is not None:
+        messages.error(request, "You already have a company in place!")
         return redirect('/')
     
     if request.method == 'POST':
@@ -180,13 +250,9 @@ def create_company(request):
 
 
 @login_required(login_url='login')
+@representative_required
+@representative_profile_required
 def addJob(request):
-    if not is_representative(request.user):
-        return HttpResponse("You are not allowed to access this page!")
-    
-    profile = has_representative_profile(request.user)
-    if not profile or not request.user.representative_profile.company:
-        return redirect("company_creation")
     
     saved_post_data = request.session.get('saved_post_form_data', {})
 
@@ -220,6 +286,7 @@ def addJob(request):
 
     return render(request, "recruiter/jobForm.html", {'form' : form})
 
+
 @login_required(login_url='login')
 def skillRedirect(request):
     if request.method == 'POST':
@@ -247,9 +314,9 @@ def skillRedirect(request):
     return redirect('add_job')
 
 @login_required(login_url='login')
+@representative_required
+@representative_profile_required
 def addSkill(request):
-    if not is_representative(request.user):
-        return HttpResponse("You are not allowed to access this page!")
     
     if not request.user.representative_profile.company:
         return redirect("company_creation")
@@ -271,16 +338,9 @@ def addSkill(request):
 
 ######################### view jobs created by the representative  ###################################
 @login_required(login_url='login')
+@representative_required
+@representative_profile_required
 def view_all_jobs_created(request):
-    if not is_representative(request.user):
-        messages.error(request, "You are not allowed to access this page!")
-        return redirect("/")
-    
-    profile = getattr(request.user, 'representative_profile', None)
-
-    if not profile:
-        messages.error(request, "You have to create profile first!")
-        return redirect("representative_profile")
     
     jobs = Post.objects.filter(post_type = 'job' , created_by = request.user, status__in = ['filled', 'published']).order_by('-created_at')
 
@@ -317,17 +377,9 @@ def view_applications_for_job(request, job_id):
 
 
 @login_required(login_url='login')
+@representative_required
+@representative_profile_required
 def view_application_detail(request, application_id):
-
-    if not is_representative(request.user):
-        messages.error(request, "You are not allowed to access this page!")
-        return redirect("all_jobs_created")
-    
-    profile = getattr(request.user, 'representative_profile', None)
-
-    if not profile:
-        messages.error(request, "You have to create profile first!")
-        return redirect("representative_profile")
     
     # previously, any representative can view this application (data leak)
     # application = get_object_or_404(Application, pk = application_id)
@@ -340,16 +392,9 @@ def view_application_detail(request, application_id):
 ######################################  Job Application functions   ############################################
 
 @login_required(login_url='login')
+@applicant_required
+@applicant_profile_required
 def apply_to_job(request, job_pk):
-
-    if not is_applicant(request.user):
-        return HttpResponse("Not allowed to view this page")
-    
-    # use helper
-    profile = request.user.applicant_profile
-
-    if not has_applicant_profile(request.user):
-        return redirect('applicant_profile')
     
     job = get_object_or_404(Post, post_type = 'job', pk = job_pk, status = 'published', is_active = True)
     
@@ -382,13 +427,9 @@ def apply_to_job(request, job_pk):
 
 
 @login_required(login_url='login')
+@applicant_required
+@applicant_profile_required
 def view_my_applications(request):
-    if not is_applicant(request.user):
-        return HttpResponse("you are not allowed to view this page")
-    
-    if not has_applicant_profile(request.user):
-        return redirect('applicant_profile')
-    
     
     applications = Application.objects.filter(applicant = request.user.applicant_profile).order_by('-applied_at')
 
@@ -412,17 +453,9 @@ def view_my_application_detail(request, pk):
 
 
 @login_required(login_url='login')
+@representative_required
+@representative_profile_required
 def accept_job_application(request, application_id):
-
-    if not is_representative(request.user):
-        messages.error(request, "You are not allowed to access this page!")
-        return redirect("/")
-
-    profile = getattr(request.user, 'representative_profile', None)
-
-    if not profile:
-        messages.info(request, "You don't have a profile!")
-        return redirect("representative_profile")
     
     application = get_object_or_404(Application, pk = application_id, status__in = ACTIVE_STATUSES)
 
