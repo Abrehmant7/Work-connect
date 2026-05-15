@@ -2,6 +2,57 @@
      
     {% block title %} Dashboard {% endblock %}
 
+    {% block style %}
+        <style>
+            .search-container form {
+                display: flex;
+                gap: 10px;
+                align-items: center;
+                margin-top: 10px;
+            }
+            
+            .search-container input {
+                padding: 8px 12px;
+                width: 250px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }
+            
+            .search-container select {
+                padding: 8px 12px;
+                border: 1px solid #ccc;
+                border-radius: 4px;
+            }
+            
+            .search-container button {
+                padding: 8px 16px;
+                background-color: #0764c9;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+            
+            .search-container button:hover {
+                background-color: #0056b3;
+            }
+            
+            .search-container .clear-btn {
+                text-decoration: none;
+                color: #999;
+                font-weight: bold;
+                font-size: 20px;
+                padding: 0 5px;
+            }
+            
+            .search-container .clear-btn:hover {
+                color: #333;
+            }
+
+             
+        </style>
+    {% endblock %}
+
 
     {% block content %} 
         {% if messages %}
@@ -12,12 +63,55 @@
             </ul>
         {% endif %}
 
+
         <h2>welcome {{ user.first_name }}, you are an applicant</h2>
-        <a href="{% url 'my_applications' %}"><button>view my applications</button></a>
+        <a href="{% url 'my_applications' %}" class="view-btn"><button>view my applications</button></a>
+
+        <div class="search-container">
+            <form method="GET" action="">
+                <input type="text" 
+                    name="q" 
+                    placeholder="Search..." 
+                    value="{{ request.GET.q }}">
+                
+                <select name="category">
+                    {% if request.GET.category %}
+                        <option value="">{{ request.GET.category|capfirst }}</option>
+                    {% endif %}
+                    <option value="">All categories</option>
+                    <option value="programming" {% if request.GET.category == 'news' %}selected{% endif %}>Programming</option>
+                    <option value="devops" {% if request.GET.category == 'blog' %}selected{% endif %}>Devops</option>
+                </select>
+                
+                <button type="submit">Search</button>
+                
+                {% if request.GET.q or request.GET.category %}
+                    <a href="?" class="clear-btn">&times;</a>
+                {% endif %}
+            </form>
+        </div>
 
         <h2>All available jobs</h2>
-        {% for job in jobs %}
-            <b><a href="{% url 'view_job' job.slug %}">{{ job.title }}</a> by {{ job.company }}</b>
+        {% for job in page_object %}
+            <p><b><a href="{% url 'view_job' job.slug %}">{{ job.title }}</a> by {{ job.company }}</b></p>
         {% endfor %}
+
+        <br><hr>
+
+        <div class="pagination">
+            {% if page_object.has_previous %}
+                <a href="?page=1&{{ query_params }}">&laquo; First</a>
+                <a href="?page={{ page_object.previous_page_number }}&{{ query_params }}">Previous</a>
+            {% endif %}
+            
+            <span class="current-page">
+                Page {{ page_object.number }} of {{ page_object.paginator.num_pages }}
+            </span>
+            
+            {% if page_object.has_next %}
+                <a href="?page={{ page_object.next_page_number }}&{{ query_params }}">Next</a>
+                <a href="?page={{ page_object.paginator.num_pages }}&{{ query_params }}">Last &raquo;</a>
+            {% endif %}
+        </div>
 
      {% endblock %}

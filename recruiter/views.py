@@ -14,6 +14,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout, authenticate
 from django.http import HttpResponseBadRequest
 from functools import wraps
+from django.core.paginator import Paginator
 logger = logging.getLogger(__name__)
 
 # Create your views here.
@@ -100,12 +101,33 @@ def applicant_profile_required(view_func = None, redirect_url = "/", message = "
 
 @login_required(login_url='login')
 def index(request):
-    jobs = Post.objects.filter(post_type = 'job',
-                               status = 'published',
-                               is_active = True).order_by('-created_at')
+    get_params = request.GET.copy()
+    searched = request.GET.get('q','')
+    category = request.GET.get('category', '')
+
+    if searched or category:
+        jobs = Post.objects.filter(post_type = 'job',
+                                    status = 'published',
+                                    title__icontains = searched,
+                                    skills_required__category__icontains = category,
+                                    is_active = True).distinct().order_by('-created_at')
+    
+    else:       
+        jobs = Post.objects.filter(post_type = 'job',
+                                status = 'published',
+                                is_active = True).order_by('-created_at')
+
+    paginator = Paginator(jobs, 4)
+    page = request.GET.get('page')
+    page_object = paginator.get_page(page)
+
+    if 'page' in get_params:
+        get_params.pop('page')
+
+    context = {'page_object':page_object, 'query_params':get_params.urlencode()}
     
     if is_applicant(request.user):
-        return render(request, "applicant/dashboard.html", {'jobs':jobs})
+        return render(request, "applicant/dashboard.html", context)
     
     elif is_representative(request.user):
         return render(request, "recruiter/dashboard.html")
@@ -395,6 +417,8 @@ def view_application_detail(request, application_id):
 @applicant_required
 @applicant_profile_required
 def apply_to_job(request, job_pk):
+
+    profile = getattr(request.user, "applicant_profile", None)
     
     job = get_object_or_404(Post, post_type = 'job', pk = job_pk, status = 'published', is_active = True)
     

@@ -12,3 +12,9 @@ def greet(name):
     print(f"Hello, {name}!")
 
 greet("Alice")
+
+x = ""
+if x:
+    print("ausdhfiuasdhdviaujhdviuasjbhg")
+else:
+    print("nah")
