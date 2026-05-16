@@ -1,0 +1,26 @@
+{% extends "recruiter/base.html" %}
+
+{% block title %}Application Details{% endblock %}
+
+{% block content %}
+    {% if messages %}
+        <ul class="messages">{% for message in messages %}<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>{% endfor %}</ul>
+    {% endif %}
+
+    <section class="detail-panel">
+        <span class="badge">Application</span>
+        <h1>{{ application.job.title }}</h1>
+        <p class="meta">{{ application.job.company }} · {{ application.applied_at|date:"M j, Y" }}</p>
+        <div class="detail-list">
+            <div class="detail-item"><strong>Applicant</strong>{{ application.applicant.user.get_full_name }}</div>
+            <div class="detail-item"><strong>Job Salary</strong>{% if application.job.salary %}{{ application.job.salary }}{% else %}Negotiable{% endif %}</div>
+            <div class="detail-item"><strong>Expected Salary</strong>{% if application.expected_salary %}{{ application.expected_salary }}{% else %}Not specified{% endif %}</div>
+            <div class="detail-item"><strong>Status</strong>{{ application.get_status_display }}</div>
+        </div>
+        <h2>Cover Letter</h2>
+        <p>{{ application.cover_letter|default:"No cover letter provided." }}</p>
+        {% if application.status != 'accepted' and application.is_active %}
+            <a href="{% url 'accept_job_application' application.id %}" class="button">Accept Application</a>
+        {% endif %}
+    </section>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends "recruiter/base.html" %}
+
+{% block title %}Sign Up{% endblock %}
+
+{% block content %}
+    <section class="page-header">
+        <h1>Create your account</h1>
+        <p>Join as an applicant or company representative and complete your profile after signup.</p>
+    </section>
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.errors }}
+
+        <div>{{ form.email.label_tag }}{{ form.email }}</div>
+        <div>{{ form.username.label_tag }}{{ form.username }}</div>
+        <div>{{ form.password1.label_tag }}{{ form.password1 }}</div>
+        <div>{{ form.password2.label_tag }}{{ form.password2 }}</div>
+        <div>{{ form.first_name.label_tag }}{{ form.first_name }}</div>
+        <div>{{ form.last_name.label_tag }}{{ form.last_name }}</div>
+        <div>{{ form.user_type.label_tag }}{{ form.user_type }}</div>
+        <div>{{ form.profile_picture.label_tag }}{{ form.profile_picture }}</div>
+
+        <button type="submit">Sign up</button>
+        <p>Already registered? <a href="{% url 'login' %}">Log in</a></p>
+    </form>
+{% endblock %}

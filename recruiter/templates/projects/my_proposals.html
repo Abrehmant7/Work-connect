@@ -1,0 +1,30 @@
+{% extends "applicant/base.html" %}
+
+{% block title %}My Proposals{% endblock %}
+
+{% block content %}
+    <section class="page-header">
+        <h1>My Proposals</h1>
+        <p>Track the project proposals you have submitted.</p>
+    </section>
+
+    <div class="grid">
+        {% for proposal in proposals %}
+            <article class="card">
+                <span class="badge badge-muted">{{ proposal.get_status_display }}</span>
+                <h2><a href="{% url 'my_proposal_detail' proposal.id %}">{{ proposal.project.title }}</a></h2>
+                <p class="meta">{{ proposal.project.company }} · Submitted {{ proposal.submitted_at|date:"M j, Y" }}</p>
+                <p>{{ proposal.description|truncatewords:22 }}</p>
+                <p class="amount">{{ proposal.amount }}</p>
+                <div class="action-bar">
+                    {% if proposal.is_pending %}
+                        <a href="{% url 'edit_proposal' proposal.id %}" class="button button-secondary">Edit</a>
+                        <a href="{% url 'withdraw_proposal' proposal.id %}" class="button button-secondary">Withdraw</a>
+                    {% endif %}
+                </div>
+            </article>
+        {% empty %}
+            <p class="empty-state">You have not submitted any proposals yet.</p>
+        {% endfor %}
+    </div>
+{% endblock %}

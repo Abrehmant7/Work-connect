@@ -1,0 +1,70 @@
+{% extends "recruiter/base.html" %}
+
+{% block title %}Representative Dashboard{% endblock %}
+
+{% block content %}
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <section class="page-header">
+        <h1>Representative workspace</h1>
+        <p>
+            Welcome {{ user.first_name }}{% if user.representative_profile.company %}, representing {{ user.representative_profile.company }}{% endif %}.
+            Manage jobs, projects, applications, and proposals from here.
+        </p>
+    </section>
+
+    {% if user.representative_profile and not user.representative_profile.company %}
+        <p class="empty-state">Your representative profile is ready. <a href="{% url 'company_creation' %}">Create a company</a> to start posting.</p>
+    {% endif %}
+
+    <div class="action-bar">
+        <a href="{% url 'add_job' %}" class="button">Add job</a>
+        <a href="{% url 'add_project' %}" class="button">Add project</a>
+        <a href="{% url 'all_jobs_created' %}" class="button button-secondary">All jobs</a>
+        <a href="{% url 'all_projects_created' %}" class="button button-secondary">All projects</a>
+    </div>
+
+    <h2>Active jobs by you</h2>
+    <div class="grid">
+        {% for job in jobs %}
+            <article class="card">
+                <span class="badge">Job</span>
+                <h2><a href="{% url 'applications_for_job' job.id %}">{{ job.title }}</a></h2>
+                <p class="meta">{{ job.company }} · {{ job.published_at|date:"M j, Y" }}</p>
+                <p>{{ job.description|truncatewords:20 }}</p>
+                <p class="amount">{% if job.salary %}{{ job.salary }} salary{% else %}Negotiable{% endif %}</p>
+                <div class="action-bar">
+                    <a href="{% url 'edit_job' job.id %}" class="button button-secondary">Edit</a>
+                    <a href="{% url 'delete_job' job.id %}" class="button button-secondary">Delete</a>
+                </div>
+            </article>
+        {% empty %}
+            <p class="empty-state">No active jobs yet.</p>
+        {% endfor %}
+    </div>
+
+    <h2 style="margin-top: 30px;">Active projects by you</h2>
+    <div class="grid">
+        {% for project in projects %}
+            <article class="card">
+                <span class="badge">Project</span>
+                <h2><a href="{% url 'proposals_for_project' project.id %}">{{ project.title }}</a></h2>
+                <p class="meta">{{ project.company }} · {{ project.published_at|date:"M j, Y" }}</p>
+                <p>{{ project.description|truncatewords:20 }}</p>
+                <p class="amount">{% if project.budget %}{{ project.budget }} budget{% else %}Budget not specified{% endif %}</p>
+                <div class="action-bar">
+                    <a href="{% url 'edit_project' project.id %}" class="button button-secondary">Edit</a>
+                    <a href="{% url 'delete_project' project.id %}" class="button button-secondary">Delete</a>
+                </div>
+            </article>
+        {% empty %}
+            <p class="empty-state">No active projects yet.</p>
+        {% endfor %}
+    </div>
+{% endblock %}

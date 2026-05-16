@@ -1,0 +1,49 @@
+{% extends "recruiter/base.html" %}
+
+{% block title %}Proposals{% endblock %}
+
+{% block content %}
+    {% if messages %}
+        <ul class="messages">{% for message in messages %}<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>{% endfor %}</ul>
+    {% endif %}
+
+    <section class="detail-panel">
+        <span class="badge">Project</span>
+        <h1>{{ project.title }}</h1>
+        <p class="meta">{{ project.company }} · {{ project.published_at|date:"M j, Y" }}</p>
+        <p>{{ project.description }}</p>
+        <div class="detail-list">
+            <div class="detail-item"><strong>Budget</strong>{% if project.budget %}{{ project.budget }}{% else %}Not specified{% endif %}</div>
+            <div class="detail-item"><strong>Status</strong>{{ project.get_status_display }}</div>
+        </div>
+        <div class="action-bar">
+            <a href="{% url 'edit_project' project.id %}" class="button button-secondary">Edit project</a>
+            {% if project.is_active %}<a href="{% url 'delete_project' project.id %}" class="button button-secondary">Delete project</a>{% endif %}
+        </div>
+    </section>
+
+    <h2>Proposals received</h2>
+    <div class="grid">
+        {% if accepted_proposal %}
+            <article class="card">
+                <span class="badge">Accepted</span>
+                <h2><a href="{% url 'proposal_detail' accepted_proposal.pk %}">{{ accepted_proposal.applicant.user.get_full_name }}</a></h2>
+                <p class="meta">{% if accepted_proposal.estimated_duration %}{{ accepted_proposal.estimated_duration }} days{% else %}Duration not specified{% endif %}</p>
+                <p>{{ accepted_proposal.description|truncatewords:24 }}</p>
+                <p class="amount">{{ accepted_proposal.amount }}</p>
+            </article>
+        {% else %}
+            {% for proposal in proposals %}
+                <article class="card">
+                    <span class="badge badge-muted">{{ proposal.get_status_display }}</span>
+                    <h2><a href="{% url 'proposal_detail' proposal.pk %}">{{ proposal.applicant.user.get_full_name }}</a></h2>
+                    <p class="meta">Submitted {{ proposal.submitted_at|date:"M j, Y" }} · {% if proposal.estimated_duration %}{{ proposal.estimated_duration }} days{% else %}Duration not specified{% endif %}</p>
+                    <p>{{ proposal.description|truncatewords:24 }}</p>
+                    <p class="amount">{{ proposal.amount }}</p>
+                </article>
+            {% empty %}
+                <p class="empty-state">No proposals submitted yet.</p>
+            {% endfor %}
+        {% endif %}
+    </div>
+{% endblock %}

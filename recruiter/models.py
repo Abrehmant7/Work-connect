@@ -529,10 +529,13 @@ class Proposal(TimeStampedModel):
         ]
     
     def __str__(self):
-        return f"Proposal by {self.applicant.user.name} for {self.project.title}"
+        return f"Proposal by {self.applicant.user.get_full_name()} for {self.project.title}"
     
     def clean(self):
         """Professional: Validate proposal amount doesn't exceed project budget"""
+        if not self.project_id:
+            return
+
         if self.amount and self.project.budget and self.amount > self.project.budget:
             raise ValidationError({
                 'amount': f'Proposal amount (${self.amount}) cannot exceed project budget (${self.project.budget})'

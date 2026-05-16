@@ -1,0 +1,37 @@
+{% extends "recruiter/base.html" %}
+
+{% block title %}All jobs{% endblock %}
+
+{% block content %}
+    {% if messages %}
+        <ul class="messages">{% for message in messages %}<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>{% endfor %}</ul>
+    {% endif %}
+
+    <section class="page-header">
+        <h1>Your job posts</h1>
+        <p>Open each job to review applications, edit details, or close listings.</p>
+    </section>
+
+    <div class="action-bar">
+        <a href="{% url 'add_job' %}" class="button">Add job</a>
+    </div>
+
+    <h2>Jobs</h2>
+    <div class="grid">
+        {% for job in jobs %}
+            <article class="card">
+                <span class="badge {% if not job.is_active %}badge-muted{% endif %}">{{ job.get_status_display }}</span>
+                <h2><a href="{% url 'applications_for_job' job.id %}">{{ job.title }}</a></h2>
+                <p class="meta">{{ job.company }} · {{ job.published_at|date:"M j, Y" }}</p>
+                <p>{{ job.description|truncatewords:20 }}</p>
+                <p class="amount">{% if job.salary %}{{ job.salary }} salary{% else %}Negotiable{% endif %}</p>
+                <div class="action-bar">
+                    <a href="{% url 'edit_job' job.id %}" class="button button-secondary">Edit</a>
+                    {% if job.is_active %}<a href="{% url 'delete_job' job.id %}" class="button button-secondary">Delete</a>{% endif %}
+                </div>
+            </article>
+        {% empty %}
+            <p class="empty-state">No jobs created yet.</p>
+        {% endfor %}
+    </div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "applicant/base.html" %}
+
+{% block title %}Project Detail{% endblock %}
+
+{% block content %}
+    <section class="detail-panel">
+        <span class="badge">Project</span>
+        <h1>{{ project.title }}</h1>
+        <p class="meta">{{ project.company }} · {{ project.published_at|date:"F j, Y" }}</p>
+        <p>{{ project.description }}</p>
+        <div class="detail-list">
+            <div class="detail-item"><strong>Budget</strong>{% if project.budget %}{{ project.budget }}{% else %}Not specified{% endif %}</div>
+            <div class="detail-item"><strong>Status</strong>{{ project.get_status_display }}</div>
+        </div>
+        <h3>Skills Required</h3>
+        <ul class="skill-list">{% for skill in project.skills_required.all %}<li>{{ skill.name }}</li>{% empty %}<li>No skills listed</li>{% endfor %}</ul>
+        <a href="{% url 'project_proposal' project.id %}" class="button">Submit proposal</a>
+    </section>
+{% endblock %}

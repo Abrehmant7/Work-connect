@@ -1,0 +1,18 @@
+{% extends "applicant/base.html" %}
+
+{% block title %}Withdraw Application{% endblock %}
+
+{% block content %}
+    <section class="page-header">
+        <h1>Withdraw application</h1>
+        <p>This will mark your application as withdrawn.</p>
+    </section>
+    <section class="detail-panel">
+        <h2>{{ application.job.title }}</h2>
+        <form action="{% url 'withdraw_application' application.id %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Withdraw application</button>
+            <a href="{% url 'my_application_detail' application.id %}" class="button button-secondary">Cancel</a>
+        </form>
+    </section>
+{% endblock %}

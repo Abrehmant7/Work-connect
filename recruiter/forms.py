@@ -1,6 +1,7 @@
 from django.forms import ModelForm
-from .models import Post, CustomUser, Skill, Company, RepresentativeProfile, ApplicantProfile, Application
+from .models import Post, CustomUser, Skill, Company, RepresentativeProfile, ApplicantProfile, Application, Proposal
 from django.contrib.auth.forms import UserCreationForm, UserChangeForm
+from django.core.exceptions import ValidationError
 
 
 
@@ -69,3 +70,24 @@ class JobApplicationForm(ModelForm):
     class Meta:
         model = Application
         fields = ['cover_letter', 'expected_salary']
+
+
+class ProposalForm(ModelForm):
+    def __init__(self, *args, **kwargs):
+        self.project = kwargs.pop('project', None)
+        super().__init__(*args, **kwargs)
+
+        if self.project:
+            self.instance.project = self.project
+
+    class Meta:
+        model = Proposal
+        fields = ['amount', 'description', 'cover_letter', 'estimated_duration']
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+
+        if self.project and amount and self.project.budget and amount > self.project.budget:
+            raise ValidationError(f"Proposal amount (${amount}) cannot exceed project budget (${self.project.budget})")
+
+        return amount

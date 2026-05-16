@@ -1,7 +1,0 @@
-{% extends "applicant/base.html" %}
-
-{% block content %}
-    {% for application in applications %}
-        <h1><a href="{% url 'my_application_detail' application.id %}">{{ application.job.title }}</a> ({{ application.status }})</h1>
-    {% endfor %}
-{% endblock %}

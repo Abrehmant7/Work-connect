@@ -1,0 +1,42 @@
+{% extends "recruiter/base.html" %}
+
+{% block title %}{% if is_edit %}Edit Project{% else %}Add Project{% endif %}{% endblock %}
+
+{% block content %}
+    <section class="page-header">
+        <h1>{% if is_edit %}Edit project post{% else %}Create a project post{% endif %}</h1>
+        <p>Set the budget, scope, and skills applicants need before submitting proposals.</p>
+    </section>
+
+    <form action="{% if is_edit %}{% url 'edit_project' project.id %}{% else %}{% url 'add_project' %}{% endif %}" method="post" id="mainPostForm">
+        {% csrf_token %}
+        {{form.errors}}
+        {% for field in form %}
+            <div class="field_container">
+                {{ field.label_tag }}{{ field }}
+                {% if field.help_text %}<span class="help"> {{ field.help_text }} </span>{% endif %}
+                {{ field.errors }}
+            </div>
+        {% endfor %}
+        <button type="submit">{% if is_edit %}Save project{% else %}Publish project{% endif %}</button>
+    </form>
+
+    {% if not is_edit %}
+        <div class="action-bar">
+            <form action="{% url 'skill_redirect' %}" method="post" id="addSkillForm">
+                <input type="hidden" name="main_form_data" id="main_form_data" value="">
+                <input type="hidden" name="next" value="{{ request.path }}">
+                {% csrf_token %}
+                <button type="submit" class="button-secondary">Add missing skill</button>
+            </form>
+        </div>
+
+        <script>
+document.getElementById('addSkillForm').addEventListener('submit', function() {
+    const mainForm = document.getElementById('mainPostForm');
+    const formData = new FormData(mainForm);
+    document.getElementById('main_form_data').value = new URLSearchParams(formData).toString();
+});
+        </script>
+    {% endif %}
+{% endblock %}

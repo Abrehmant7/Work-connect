@@ -1,0 +1,20 @@
+{% extends "recruiter/base.html" %}
+
+{% block title %}Delete Project{% endblock %}
+
+{% block content %}
+    <section class="page-header">
+        <h1>Delete project</h1>
+        <p>This will close the project and remove it from active listings.</p>
+    </section>
+
+    <section class="detail-panel">
+        <h2>{{ project.title }}</h2>
+        <p class="meta">{{ project.company }} · {{ project.published_at|date:"M j, Y" }}</p>
+        <form action="{% url 'delete_project' project.id %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Delete project</button>
+            <a href="{% url 'proposals_for_project' project.id %}" class="button button-secondary">Cancel</a>
+        </form>
+    </section>
+{% endblock %}

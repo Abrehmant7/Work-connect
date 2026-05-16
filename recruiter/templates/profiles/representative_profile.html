@@ -1,0 +1,51 @@
+{% extends "recruiter/base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <section class="page-header">
+        <h1>Representative Profile</h1>
+        <p>Manage your account and company contact information.</p>
+    </section>
+
+    <section class="detail-panel">
+        <div class="detail-list">
+            <div class="detail-item"><strong>Name</strong>{{ user.get_full_name }}</div>
+            <div class="detail-item"><strong>Username</strong>{{ user.username }}</div>
+            <div class="detail-item"><strong>Email</strong>{{ user.email }}</div>
+            <div class="detail-item"><strong>Company</strong>{% if profile and profile.company %}{{ profile.company.name }}{% elif profile %}<a href="{% url 'company_creation' %}">Create company</a>{% else %}Save profile first{% endif %}</div>
+            <div class="detail-item"><strong>Position</strong>{% if profile and profile.position %}{{ profile.position }}{% else %}Not added{% endif %}</div>
+            <div class="detail-item"><strong>Phone</strong>{% if profile and profile.phone %}{{ profile.phone }}{% else %}Not added{% endif %}</div>
+        </div>
+    </section>
+
+    <form action="{% url 'representative_profile' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h2>Edit Profile</h2>
+        {{ user_form.non_field_errors }}
+        {% for field in user_form %}
+            <div class="field_container">
+                {{ field.label_tag }}{{ field }}{{ field.errors }}
+            </div>
+        {% endfor %}
+
+        {{ form.non_field_errors }}
+        {% for field in form %}
+            <div class="field_container">
+                {{ field.label_tag }}{{ field }}
+                {% if field.help_text %}<span class="help">{{ field.help_text }}</span>{% endif %}
+                {{ field.errors }}
+            </div>
+        {% endfor %}
+
+        <button type="submit">Save profile</button>
+    </form>
+{% endblock %}

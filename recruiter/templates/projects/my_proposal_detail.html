@@ -1,0 +1,30 @@
+{% extends "applicant/base.html" %}
+
+{% block title %}Proposal Details{% endblock %}
+
+{% block content %}
+    {% if messages %}
+        <ul class="messages">{% for message in messages %}<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>{% endfor %}</ul>
+    {% endif %}
+
+    <section class="detail-panel">
+        <span class="badge">{{ proposal.get_status_display }}</span>
+        <h1>{{ proposal.project.title }}</h1>
+        <p class="meta">{{ proposal.project.company }} · Submitted {{ proposal.submitted_at|date:"M j, Y" }}</p>
+        <p>{{ proposal.project.description }}</p>
+        <div class="detail-list">
+            <div class="detail-item"><strong>Project Budget</strong>{% if proposal.project.budget %}{{ proposal.project.budget }}{% else %}Not specified{% endif %}</div>
+            <div class="detail-item"><strong>Your Amount</strong>{{ proposal.amount }}</div>
+            <div class="detail-item"><strong>Estimated Duration</strong>{% if proposal.estimated_duration %}{{ proposal.estimated_duration }} days{% else %}Not specified{% endif %}</div>
+        </div>
+        <h2>Proposal Description</h2>
+        <p>{{ proposal.description }}</p>
+        <div class="action-bar">
+            {% if proposal.cover_letter %}<a href="{{ proposal.cover_letter.url }}" class="button button-secondary">View cover letter</a>{% endif %}
+            {% if proposal.is_pending %}
+                <a href="{% url 'edit_proposal' proposal.id %}" class="button button-secondary">Edit proposal</a>
+                <a href="{% url 'withdraw_proposal' proposal.id %}" class="button button-secondary">Withdraw proposal</a>
+            {% endif %}
+        </div>
+    </section>
+{% endblock %}

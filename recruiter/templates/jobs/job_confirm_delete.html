@@ -1,0 +1,20 @@
+{% extends "recruiter/base.html" %}
+
+{% block title %}Delete Job{% endblock %}
+
+{% block content %}
+    <section class="page-header">
+        <h1>Delete job</h1>
+        <p>This will close the job and remove it from active listings.</p>
+    </section>
+
+    <section class="detail-panel">
+        <h2>{{ job.title }}</h2>
+        <p class="meta">{{ job.company }} · {{ job.published_at|date:"M j, Y" }}</p>
+        <form action="{% url 'delete_job' job.id %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Delete job</button>
+            <a href="{% url 'applications_for_job' job.id %}" class="button button-secondary">Cancel</a>
+        </form>
+    </section>
+{% endblock %}

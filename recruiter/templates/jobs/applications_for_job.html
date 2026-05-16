@@ -1,0 +1,48 @@
+{% extends "recruiter/base.html" %}
+
+{% block title %}Applications{% endblock %}
+
+{% block content %}
+    {% if messages %}
+        <ul class="messages">{% for message in messages %}<li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>{% endfor %}</ul>
+    {% endif %}
+
+    <section class="detail-panel">
+        <span class="badge">Job</span>
+        <h1>{{ job.title }}</h1>
+        <p class="meta">{{ job.company }} · {{ job.published_at|date:"M j, Y" }}</p>
+        <p>{{ job.description }}</p>
+        <div class="detail-list">
+            <div class="detail-item"><strong>Salary</strong>{% if job.salary %}{{ job.salary }}{% else %}Negotiable{% endif %}</div>
+            <div class="detail-item"><strong>Status</strong>{{ job.get_status_display }}</div>
+        </div>
+        <div class="action-bar">
+            <a href="{% url 'edit_job' job.id %}" class="button button-secondary">Edit job</a>
+            {% if job.is_active %}<a href="{% url 'delete_job' job.id %}" class="button button-secondary">Delete job</a>{% endif %}
+        </div>
+    </section>
+
+    <h2>Applications received</h2>
+    <div class="grid">
+        {% if accepted_application %}
+            <article class="card">
+                <span class="badge">Accepted</span>
+                <h2><a href="{% url 'application_detail' accepted_application.pk %}">{{ accepted_application.applicant.user.get_full_name }}</a></h2>
+                <p class="meta">{{ accepted_application.applicant.experience_years }} years of experience</p>
+                <p class="amount">{% if accepted_application.expected_salary %}{{ accepted_application.expected_salary }} expected{% else %}Expected salary not listed{% endif %}</p>
+            </article>
+        {% else %}
+            {% for application in applications %}
+                <article class="card">
+                    <span class="badge badge-muted">{{ application.get_status_display }}</span>
+                    <h2><a href="{% url 'application_detail' application.pk %}">{{ application.applicant.user.get_full_name }}</a></h2>
+                    <p class="meta">{{ application.applicant.experience_years }} years of experience · Applied {{ application.applied_at|date:"M j, Y" }}</p>
+                    <p>{{ application.cover_letter|truncatewords:24 }}</p>
+                    <p class="amount">{% if application.expected_salary %}{{ application.expected_salary }} expected{% else %}Expected salary not listed{% endif %}</p>
+                </article>
+            {% empty %}
+                <p class="empty-state">No applications received yet.</p>
+            {% endfor %}
+        {% endif %}
+    </div>
+{% endblock %}

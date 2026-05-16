@@ -1,0 +1,18 @@
+{% extends "applicant/base.html" %}
+
+{% block title %}Withdraw Proposal{% endblock %}
+
+{% block content %}
+    <section class="page-header">
+        <h1>Withdraw proposal</h1>
+        <p>This will mark your proposal as withdrawn.</p>
+    </section>
+    <section class="detail-panel">
+        <h2>{{ proposal.project.title }}</h2>
+        <form action="{% url 'withdraw_proposal' proposal.id %}" method="post">
+            {% csrf_token %}
+            <button type="submit">Withdraw proposal</button>
+            <a href="{% url 'my_proposal_detail' proposal.id %}" class="button button-secondary">Cancel</a>
+        </form>
+    </section>
+{% endblock %}

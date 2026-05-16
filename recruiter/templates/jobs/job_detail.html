@@ -1,0 +1,19 @@
+{% extends "applicant/base.html" %}
+
+{% block title %}Job Detail{% endblock %}
+
+{% block content %}
+    <section class="detail-panel">
+        <span class="badge">Job</span>
+        <h1>{{ job.title }}</h1>
+        <p class="meta">{{ job.company }} · {{ job.published_at|date:"F j, Y" }}</p>
+        <p>{{ job.description }}</p>
+        <div class="detail-list">
+            <div class="detail-item"><strong>Salary</strong>{% if job.salary %}{{ job.salary }}{% else %}Negotiable{% endif %}</div>
+            <div class="detail-item"><strong>Status</strong>{{ job.get_status_display }}</div>
+        </div>
+        <h3>Skills Required</h3>
+        <ul class="skill-list">{% for skill in job.skills_required.all %}<li>{{ skill.name }}</li>{% empty %}<li>No skills listed</li>{% endfor %}</ul>
+        <a href="{% url 'job_application' job.id %}" class="button">Apply for job</a>
+    </section>
+{% endblock %}

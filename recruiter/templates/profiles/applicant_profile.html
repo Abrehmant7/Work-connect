@@ -1,0 +1,52 @@
+{% extends "applicant/base.html" %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+
+    <section class="page-header">
+        <h1>Applicant Profile</h1>
+        <p>Keep your account, CV, skills, and preferences up to date.</p>
+    </section>
+
+    <section class="detail-panel">
+        <div class="detail-list">
+            <div class="detail-item"><strong>Name</strong>{{ user.get_full_name }}</div>
+            <div class="detail-item"><strong>Username</strong>{{ user.username }}</div>
+            <div class="detail-item"><strong>Email</strong>{{ user.email }}</div>
+            <div class="detail-item"><strong>Experience</strong>{% if profile %}{{ profile.experience_years }} years{% else %}Not added{% endif %}</div>
+            <div class="detail-item"><strong>Expected Salary</strong>{% if profile and profile.expected_salary %}{{ profile.expected_salary }}{% else %}Not added{% endif %}</div>
+            <div class="detail-item"><strong>Location</strong>{% if profile and profile.location_preference %}{{ profile.location_preference }}{% else %}Not added{% endif %}</div>
+        </div>
+        {% if profile and profile.cv %}<p><a href="{{ profile.cv.url }}" class="button button-secondary">View CV</a></p>{% endif %}
+    </section>
+
+    <form action="{% url 'applicant_profile' %}" method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <h2>Edit Profile</h2>
+        {{ user_form.non_field_errors }}
+        {% for field in user_form %}
+            <div class="field_container">
+                {{ field.label_tag }}{{ field }}{{ field.errors }}
+            </div>
+        {% endfor %}
+
+        {{ form.non_field_errors }}
+        {% for field in form %}
+            <div class="field_container">
+                {{ field.label_tag }}{{ field }}
+                {% if field.help_text %}<span class="help">{{ field.help_text }}</span>{% endif %}
+                {{ field.errors }}
+            </div>
+        {% endfor %}
+
+        <button type="submit">Save profile</button>
+    </form>
+{% endblock %}
