@@ -4,7 +4,7 @@
 
 {% block content %}
 
-<form action="{% url 'add_job' %}" method="post" id="mainPostForm">
+<form action="{% url 'add_project' %}" method="post" id="mainPostForm">
         {% csrf_token %}
         {{form.errors}}
         {% for field in form %}
@@ -24,7 +24,7 @@
     <h4>Can't find a skill? Add a new one</h4>
     <form action="{% url 'skill_redirect' %}" method="post" id="addSkillForm">
         <input type="hidden" name="main_form_data" id="main_form_data" value="">
-        <!-- next path will be add_job -->
+        <!-- next path will be add_project -->
         <input type="hidden" name="next" value="{{ request.path }}">
         {% csrf_token %}
         

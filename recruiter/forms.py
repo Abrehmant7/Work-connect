@@ -15,11 +15,21 @@ class CustomUserChangeForm(UserChangeForm):
         model = CustomUser
         fields = '__all__'
 
+
+class UserProfileForm(ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ['username', 'email', 'first_name', 'last_name', 'profile_picture']
+
 class JobForm(ModelForm):
     class Meta:
         model = Post
         fields = ['title', 'description', 'salary', 'skills_required']
 
+class ProjectForm(ModelForm):
+    class Meta:
+        model = Post
+        fields = ['title', 'description', 'budget', 'skills_required']
 
 class SkillForm(ModelForm):
     class Meta:
@@ -42,11 +52,20 @@ class RepresentitativeProfileForm(ModelForm):
 class ApplicantProfileForm(ModelForm):
     class Meta:
         model = ApplicantProfile
-        fields = ['cv', 'summary', 'experience_years', 'skills', 'location_preference', 'expected_salary']
+        fields = [
+            'cv',
+            'summary',
+            'experience_years',
+            'skills',
+            'linkedin_url',
+            'github_url',
+            'portfolio_url',
+            'location_preference',
+            'expected_salary',
+        ]
 
 
 class JobApplicationForm(ModelForm):
     class Meta:
         model = Application
         fields = ['cover_letter', 'expected_salary']
-    

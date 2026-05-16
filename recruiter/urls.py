@@ -22,6 +22,8 @@ urlpatterns = [
     path("application_detail/<int:application_id>", views.view_application_detail, name="application_detail"),
     path("accept_job_application/<int:application_id>", views.accept_job_application, name="accept_job_application"),
 
+    path("add_project", views.addProject, name="add_project"),
+
     path("skill_redirect", views.skillRedirect, name="skill_redirect"),
     path("add_skill", views.addSkill, name="add_skill"),
 

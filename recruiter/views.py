@@ -5,7 +5,7 @@ from .models import Post, Skill, CustomUser, ApplicantProfile, RepresentativePro
 import logging
 
 from django.shortcuts import render, redirect
-from .forms import JobForm, CustomUserCreationForm, SkillForm, RepresentitativeProfileForm, CompanyForm, ApplicantProfileForm, JobApplicationForm
+from .forms import JobForm, CustomUserCreationForm, SkillForm, RepresentitativeProfileForm, CompanyForm, ProjectForm, ApplicantProfileForm, JobApplicationForm, UserProfileForm
 from django.urls import reverse
 from django.db import transaction, IntegrityError
 from django.utils import timezone
@@ -41,7 +41,7 @@ def representative_required(view_func = None, redirect_url = "/", message = "Acc
             actual_view, redirect_url, message
         )
     @wraps(view_func)
-    def wrapper(request, *args, **kwargs):  
+    def wrapper(request, *args, **kwargs):
         if not is_representative(request.user):
             error_msg = message or "You are not allowed to access this page!"
             messages.error(request, error_msg)
@@ -111,11 +111,15 @@ def index(request):
                                     title__icontains = searched,
                                     skills_required__category__icontains = category,
                                     is_active = True).distinct().order_by('-created_at')
-    
-    else:       
+
+    else:
         jobs = Post.objects.filter(post_type = 'job',
                                 status = 'published',
                                 is_active = True).order_by('-created_at')
+
+    jobs_created = Post.objects.filter(post_type = "job", status = 'published', is_active = 'True', created_by = request.user)
+
+    projects_created = Post.objects.filter(post_type = "project", status = 'published', is_active = 'True', created_by = request.user)
 
     paginator = Paginator(jobs, 4)
     page = request.GET.get('page')
@@ -124,13 +128,14 @@ def index(request):
     if 'page' in get_params:
         get_params.pop('page')
 
-    context = {'page_object':page_object, 'query_params':get_params.urlencode()}
-    
-    if is_applicant(request.user):
+    if request.user.user_type == 'applicant':
+        context = {'page_object':page_object, 'query_params':get_params.urlencode()}
         return render(request, "applicant/dashboard.html", context)
-    
-    elif is_representative(request.user):
-        return render(request, "recruiter/dashboard.html")
+
+    elif request.user.user_type == 'representative':
+        context = {'jobs' : jobs_created, 'projects' : projects_created}
+        return render(request, "recruiter/dashboard.html", context)
+
 
 
 @login_required(login_url='login')
@@ -144,7 +149,7 @@ def view_job(request, slug):
 
 def signUp(request):
     if request.method == 'POST':
-        form = CustomUserCreationForm(request.POST)
+        form = CustomUserCreationForm(request.POST, request.FILES)
 
         if form.is_valid():
             user = form.save()
@@ -154,7 +159,7 @@ def signUp(request):
                 return redirect("representative_profile")
             elif user.user_type == 'applicant':
                 return redirect("applicant_profile")
-    
+
     else:
         form = CustomUserCreationForm()
 
@@ -174,16 +179,16 @@ def logIn(request):
             if user.user_type == 'applicant':
                 if not hasattr(user, 'applicant_profile'):
                     return redirect("applicant_profile")
-                
+
             elif user.user_type == "representative":
                 if not hasattr(user, 'representative_profile'):
                     return redirect("representative_profile")
 
             return redirect("/")
-        
+
         else:
             return render(request, 'recruiter/log_in.html', {"error" : "invalid credentials"})
-        
+
     return render(request, "recruiter/log_in.html")
 
 def logOut(request):
@@ -195,50 +200,64 @@ def logOut(request):
 @login_required(login_url='login')
 @representative_required
 def complete_representative_profile(request):
-    # if the user already has a profile
-    if has_representative_profile(request.user):
-        redirect('/')
+    profile = getattr(request.user, 'representative_profile', None)
 
     if request.method == 'POST':
-        form = RepresentitativeProfileForm(request.POST or None)
+        user_form = UserProfileForm(request.POST, request.FILES, instance=request.user)
+        form = RepresentitativeProfileForm(request.POST, instance=profile)
 
-        if form.is_valid():
+        if user_form.is_valid() and form.is_valid():
+            user_form.save()
             profile =  form.save(commit=False)
             profile.user = request.user
             profile.save()
+            messages.success(request, "Profile saved successfully!")
             return redirect("/")
-        
+
         else:
             messages.error(request, "Please correct the errors below.")
 
     else:
-        form = RepresentitativeProfileForm()
+        user_form = UserProfileForm(instance=request.user)
+        form = RepresentitativeProfileForm(instance=profile)
 
-    return render(request, "recruiter/representative_profile.html", {'form':form})
+    return render(request, "recruiter/representative_profile.html", {
+        'form': form,
+        'user_form': user_form,
+        'profile': profile,
+    })
 
 
 @login_required(login_url='login')
 @applicant_required
 def complete_applicant_profile(request):
-    if has_applicant_profile(request.user):
-        return redirect("/")
-    
-    if request.method == 'POST':
-        form = ApplicantProfileForm(request.POST or None, request.FILES)
+    profile = getattr(request.user, 'applicant_profile', None)
 
-        if form.is_valid():
+    if request.method == 'POST':
+        user_form = UserProfileForm(request.POST, request.FILES, instance=request.user)
+        form = ApplicantProfileForm(request.POST, request.FILES, instance=profile)
+
+        if user_form.is_valid() and form.is_valid():
+            user_form.save()
             profile =  form.save(commit=False)
             profile.user = request.user
             profile.save()
+            form.save_m2m()
+            messages.success(request, "Profile saved successfully!")
             return redirect("/")
-        
+
         else:
             messages.error(request, "Please correct the errors below.")
 
     else:
-        form = ApplicantProfileForm()
+        user_form = UserProfileForm(instance=request.user)
+        form = ApplicantProfileForm(instance=profile)
 
-    return render(request, "applicant/applicant_profile.html", {'form':form})
+    return render(request, "applicant/applicant_profile.html", {
+        'form': form,
+        'user_form': user_form,
+        'profile': profile,
+    })
 
 
 
@@ -246,11 +265,11 @@ def complete_applicant_profile(request):
 @representative_required
 @representative_profile_required
 def create_company(request):
-    
+
     if request.user.representative_profile.company is not None:
         messages.error(request, "You already have a company in place!")
         return redirect('/')
-    
+
     if request.method == 'POST':
         form = CompanyForm(request.POST or None)
 
@@ -261,7 +280,7 @@ def create_company(request):
             user_profile.save()
             messages.success(request, "Company created successfully!")
             return redirect("/")
-        
+
         else:
             messages.error(request, "Please correct the errors below.")
 
@@ -275,7 +294,11 @@ def create_company(request):
 @representative_required
 @representative_profile_required
 def addJob(request):
-    
+
+    if not request.user.representative_profile.company:
+        messages.info(request, "You have to register a company first!")
+        return redirect('company_creation')
+
     saved_post_data = request.session.get('saved_post_form_data', {})
 
     if request.method == 'POST':
@@ -287,19 +310,23 @@ def addJob(request):
             job_post.created_by = request.user
             job_post.status = 'published'
             job_post.company = request.user.representative_profile.company
+            job_post.published_at = timezone.now
             job_post.save()
             form.save_m2m()
 
 
             if 'saved_post_form_data' in request.session:
                 del request.session['saved_post_form_data']
+
+            if 'skill_return_url' in request.session:
+                del request.session['skill_return_url']
+
             messages.success(request, "Post created successfully!")
             return redirect("/")
-        
         else:
             messages.error(request, "Please correct the errors below.")
             print(form.errors)
-        
+
     else:
         if saved_post_data:
             form = JobForm(saved_post_data)
@@ -308,50 +335,96 @@ def addJob(request):
 
     return render(request, "recruiter/jobForm.html", {'form' : form})
 
+@login_required(login_url='login')
+@representative_required
+@representative_profile_required
+def addProject(request):
+
+    saved_post_data = request.session.get('saved_post_form_data', {})
+
+    if request.method == 'POST':
+        form = ProjectForm(request.POST)
+
+        if form.is_valid():
+            project = form.save(commit=False)
+            project.post_type = 'project'
+            project.created_by = request.user
+            project.status = 'published'
+            project.company = request.user.representative_profile.company
+            project.published_at = timezone.now
+            project.save()
+            form.save_m2m()
+
+            if 'saved_post_form_data' in request.session:
+                del request.session['saved_post_form_data']
+
+            if 'skill_return_url' in request.session:
+                del request.session['skill_return_url']
+
+            messages.success(request, "Post created successfully!")
+            return redirect("/")
+
+        else:
+            messages.error(request, "Please correct the errors below.")
+
+
+    else:
+        if saved_post_data:
+            form = ProjectForm(saved_post_data)
+        else:
+            form = ProjectForm()
+
+    return render(request, "recruiter/projectForm.html", {'form' : form})
 
 @login_required(login_url='login')
 def skillRedirect(request):
     if request.method == 'POST':
-            
+
             # Get the main form data from the hidden field
             # This is the ONLY place we use a hidden field
         main_form_data = request.POST.get('main_form_data', '')
-            
+        return_url = request.POST.get('next', 'add_job')
+        request.session['skill_return_url'] = return_url
+
         if main_form_data:
                 # Parse the URL-encoded form data
             from urllib.parse import parse_qs
             parsed_data = parse_qs(main_form_data)
-                
+
                 # Convert to format suitable for JobForm
                 # parse_qs returns { 'title': ['value'], 'description': ['value'] }
             cleaned_data = {}
             for key, value_list in parsed_data.items():
                 cleaned_data[key] = value_list[0] if len(value_list) == 1 else value_list
-                
+
                 # Save to session so addPost can access it
             request.session['saved_post_form_data'] = cleaned_data
-            
+
         return redirect('add_skill')
-    
+
     return redirect('add_job')
 
 @login_required(login_url='login')
 @representative_required
 @representative_profile_required
 def addSkill(request):
-    
     if not request.user.representative_profile.company:
         return redirect("company_creation")
-    
+
+
     if request.method == 'POST':
         form = SkillForm(request.POST)
         if form.is_valid():
             skill = form.save()
             messages.success(request, f"Skill '{skill.name}' added successfully!")
-            return redirect('add_job')
+            return_url = request.session.get('skill_return_url', 'add_job')
+            if 'add_project' in return_url:
+                return redirect('add_project')
+            else:
+                return redirect('add_job')
         else:
             messages.error(request, "Please correct the errors below.")
-    
+
     else:
         form = SkillForm()
 
@@ -363,7 +436,7 @@ def addSkill(request):
 @representative_required
 @representative_profile_required
 def view_all_jobs_created(request):
-    
+
     jobs = Post.objects.filter(post_type = 'job' , created_by = request.user, status__in = ['filled', 'published']).order_by('-created_at')
 
     return render(request, 'recruiter/all_jobs_created.html', {'jobs':jobs})
@@ -375,7 +448,7 @@ def view_applications_for_job(request, job_id):
     if not is_representative(request.user):
         messages.error(request, "You are not allowed to access this page!")
         return redirect("all_jobs_created")
-    
+
     profile = getattr(request.user, 'representative_profile', None)
 
     if not profile:
@@ -386,7 +459,7 @@ def view_applications_for_job(request, job_id):
 
     # Get the first accepted application (if any)
     accepted_application = job.applications.filter(status='accepted').first()
-    
+
     # If there's an accepted application, show only that one
     # Otherwise show all applications
     if accepted_application:
@@ -402,7 +475,7 @@ def view_applications_for_job(request, job_id):
 @representative_required
 @representative_profile_required
 def view_application_detail(request, application_id):
-    
+
     # previously, any representative can view this application (data leak)
     # application = get_object_or_404(Application, pk = application_id)
 
@@ -419,9 +492,9 @@ def view_application_detail(request, application_id):
 def apply_to_job(request, job_pk):
 
     profile = getattr(request.user, "applicant_profile", None)
-    
+
     job = get_object_or_404(Post, post_type = 'job', pk = job_pk, status = 'published', is_active = True)
-    
+
     prev_applications = Application.objects.filter(applicant = profile, job = job).exists()
 
     if prev_applications:
@@ -454,7 +527,7 @@ def apply_to_job(request, job_pk):
 @applicant_required
 @applicant_profile_required
 def view_my_applications(request):
-    
+
     applications = Application.objects.filter(applicant = request.user.applicant_profile).order_by('-applied_at')
 
     return render(request, 'applicant/my_applications.html', {'applications':applications})
@@ -464,14 +537,14 @@ def view_my_applications(request):
 def view_my_application_detail(request, pk):
     if not is_applicant(request.user):
         return HttpResponse("you are not allowed to view this page")
-    
+
     if not has_applicant_profile(request.user):
         return redirect('applicant_profile')
-    
-    
+
+
     application = get_object_or_404(Application, pk = pk, applicant = request.user.applicant_profile )
 
-    
+
     return render(request, 'applicant/application_detail.html', {'application':application})
 
 
@@ -480,7 +553,7 @@ def view_my_application_detail(request, pk):
 @representative_required
 @representative_profile_required
 def accept_job_application(request, application_id):
-    
+
     application = get_object_or_404(Application, pk = application_id, status__in = ACTIVE_STATUSES)
 
     job = application.job
@@ -488,15 +561,15 @@ def accept_job_application(request, application_id):
     if job.created_by != request.user:
         messages.error(request, "Job this application is for isn't created by you!")
         return redirect("all_jobs_created")
-    
+
     if job.post_type != 'job' or job.status != 'published' or not job.is_active:
         messages.error(request, "Job this application is for has issues!")
         return redirect("all_jobs_created")
-    
+
     if not application.is_active:
         messages.error(request, "Application is no more active!")
         return redirect("all_jobs_created")
-    
+
     all_applications = job.applications.all()
 
     # previously, performance improvement
@@ -504,11 +577,11 @@ def accept_job_application(request, application_id):
     #     if a.is_accepted():
     #         messages.error(request, "An application for this job is already accepted!")
     #         return redirect("all_jobs_created")
-        
+
     if job.applications.filter(status='accepted').exists():
         messages.error(request, "An application for this job is already accepted!")
         return redirect("all_jobs_created")
-        
+
     application.update_status('accepted')
 
     for a in all_applications:

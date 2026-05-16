@@ -1,37 +1,200 @@
 {% extends "applicant/base.html" %}
 
-{% block title %} Profile {% endblock %}
+{% block title %}Profile{% endblock %}
 
 {% block style %}
-    <style>
-        button{
-            padding: 10px;
-        }
+<style>
+    .profile-grid {
+        display: grid;
+        grid-template-columns: minmax(220px, 320px) minmax(280px, 1fr);
+        gap: 24px;
+        align-items: start;
+    }
 
-        .field_container{
-            margin: 10px;
+    .profile-card,
+    .profile-form {
+        background: white;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0px 0px 10px rgba(0,0,0,0.1);
+    }
+
+    .profile-card img {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        display: block;
+        margin-bottom: 15px;
+        background: #e9ecef;
+    }
+
+    .profile-row {
+        margin-bottom: 12px;
+    }
+
+    .profile-row strong {
+        display: block;
+        color: #555;
+        margin-bottom: 3px;
+    }
+
+    .skill-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 0;
+        list-style: none;
+    }
+
+    .skill-list li {
+        background: #eef5ff;
+        color: #0056b3;
+        border-radius: 4px;
+        padding: 5px 8px;
+    }
+
+    .field_container {
+        margin-bottom: 15px;
+    }
+
+    .field_container label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    input,
+    textarea,
+    select {
+        max-width: 100%;
+    }
+
+    .help {
+        display: block;
+        color: #666;
+        font-size: 13px;
+        margin-top: 4px;
+    }
+
+    @media (max-width: 800px) {
+        .profile-grid {
+            grid-template-columns: 1fr;
         }
-    </style>
-{% endblock }
+    }
+</style>
+{% endblock %}
 
 {% block content %}
+    {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+                <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
 
-    <body>
-        <form action="{% url 'applicant_profile' %}" method="post" enctype="multipart/form-data">
+    <h1>Applicant Profile</h1>
+
+    <div class="profile-grid">
+        <section class="profile-card">
+            {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" alt="{{ user.get_full_name }}">
+            {% endif %}
+
+            <div class="profile-row">
+                <strong>Name</strong>
+                {{ user.get_full_name }}
+            </div>
+            <div class="profile-row">
+                <strong>Username</strong>
+                {{ user.username }}
+            </div>
+            <div class="profile-row">
+                <strong>Email</strong>
+                {{ user.email }}
+            </div>
+            <div class="profile-row">
+                <strong>Experience</strong>
+                {% if profile %}{{ profile.experience_years }} years{% else %}Not added yet{% endif %}
+            </div>
+            <div class="profile-row">
+                <strong>Location preference</strong>
+                {% if profile and profile.location_preference %}{{ profile.location_preference }}{% else %}Not added yet{% endif %}
+            </div>
+            <div class="profile-row">
+                <strong>Expected salary</strong>
+                {% if profile and profile.expected_salary %}{{ profile.expected_salary }}{% else %}Not added yet{% endif %}
+            </div>
+            <div class="profile-row">
+                <strong>LinkedIn</strong>
+                {% if profile and profile.linkedin_url %}<a href="{{ profile.linkedin_url }}">{{ profile.linkedin_url }}</a>{% else %}Not added yet{% endif %}
+            </div>
+            <div class="profile-row">
+                <strong>GitHub</strong>
+                {% if profile and profile.github_url %}<a href="{{ profile.github_url }}">{{ profile.github_url }}</a>{% else %}Not added yet{% endif %}
+            </div>
+            <div class="profile-row">
+                <strong>Portfolio</strong>
+                {% if profile and profile.portfolio_url %}<a href="{{ profile.portfolio_url }}">{{ profile.portfolio_url }}</a>{% else %}Not added yet{% endif %}
+            </div>
+            <div class="profile-row">
+                <strong>CV</strong>
+                {% if profile and profile.cv %}
+                    <a href="{{ profile.cv.url }}">View CV</a>
+                {% else %}
+                    Not uploaded yet
+                {% endif %}
+            </div>
+            <div class="profile-row">
+                <strong>Skills</strong>
+                {% if profile and profile.skills.all %}
+                    <ul class="skill-list">
+                        {% for skill in profile.skills.all %}
+                            <li>{{ skill.name }}</li>
+                        {% empty %}
+                            <li>No skills added yet</li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    Not added yet
+                {% endif %}
+            </div>
+            <div class="profile-row">
+                <strong>Summary</strong>
+                {% if profile and profile.summary %}{{ profile.summary }}{% else %}Not added yet{% endif %}
+            </div>
+        </section>
+
+        <form class="profile-form" action="{% url 'applicant_profile' %}" method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            {{form.errors}}
-            {% for field in form %}
+
+            <h2>Edit Profile</h2>
+            {{ user_form.non_field_errors }}
+            {% for field in user_form %}
                 <div class="field_container">
                     {{ field.label_tag }}
                     {{ field }}
                     {% if field.help_text %}
-                        <span class="help"> {{ field.help_text }} </span>
+                        <span class="help">{{ field.help_text }}</span>
                     {% endif %}
                     {{ field.errors }}
                 </div>
             {% endfor %}
 
-            <button type="submit">send</button>
-        </form>
+            {{ form.non_field_errors }}
+            {% for field in form %}
+                <div class="field_container">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {% if field.help_text %}
+                        <span class="help">{{ field.help_text }}</span>
+                    {% endif %}
+                    {{ field.errors }}
+                </div>
+            {% endfor %}
 
+            <button type="submit">Save profile</button>
+        </form>
+    </div>
 {% endblock %}
