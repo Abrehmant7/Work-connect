@@ -127,13 +127,15 @@ class ApplicantProfileSerializer(serializers.ModelSerializer):
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
-        fields = ['name',
-                   'location',
-                     'website',
-                       'description',
-                         'industry',
-                           'size',
-                             'logo']
+        fields = [
+            'name',
+            'location',
+            'website',
+            'description',
+            'industry',
+            'size',
+            'logo'
+        ]
         
 
 
@@ -161,6 +163,8 @@ class JobSerializer(serializers.ModelSerializer):
             'company',
             'created_by',
             'post_type',
+            'is_active',
+            'is_featured',
             'published_at',
             'closed_at',
             'created_at',
@@ -181,3 +185,18 @@ class ProjectSerializer(serializers.ModelSerializer):
             'closed_at',
             'created_at',
         ]
+
+
+class SkillSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Skill
+        fields = [
+            'id',
+            'name',
+            'category',
+            'description',
+            'is_popular',
+            'created_at',
+            'updated_at',
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']

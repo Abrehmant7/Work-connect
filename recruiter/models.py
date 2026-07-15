@@ -447,6 +447,12 @@ class Post(TimeStampedModel):
         self.is_active = False
         self.save()
 
+    def delete_post(self):
+        self.status = 'cancelled'
+        self.is_active = False
+        self.closed_at = timezone.now()
+        self.save()
+
 
 class Proposal(TimeStampedModel):
     """

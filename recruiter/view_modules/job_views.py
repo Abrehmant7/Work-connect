@@ -86,10 +86,7 @@ def delete_job(request, job_id):
     job = get_object_or_404(Post, pk=job_id, post_type='job', created_by=request.user)
 
     if request.method == 'POST':
-        job.status = 'cancelled'
-        job.is_active = False
-        job.closed_at = timezone.now()
-        job.save()
+        job.delete_post()
         messages.success(request, "Job deleted successfully.")
         return redirect("all_jobs_created")
 

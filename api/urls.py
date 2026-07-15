@@ -12,7 +12,11 @@ from .views import (
     CompaniesListAPIView,
     CompanyDetailAPIView,
     CompanyJobsAPIView,
-    CompanyProjectsAPIView
+    CompanyProjectsAPIView,
+    SkillListCreateAPIView,
+    SkillDetailAPIView,
+    JobListCreateAPIView,
+    JobDetailAPIView
 )
 
 router = DefaultRouter()
@@ -30,6 +34,12 @@ urlpatterns = [
     path('companies/<int:pk>/', CompanyDetailAPIView.as_view(), name='company_detail'),
     path('companies/<int:pk>/jobs/', CompanyJobsAPIView.as_view(), name='company_jobs' ),
     path('companies/<int:pk>/projects/', CompanyProjectsAPIView.as_view(), name='company_projects' ),
+
+    path('skills/', SkillListCreateAPIView.as_view(), name='skills_list_create'),
+    path('skills/<int:pk>/', SkillDetailAPIView.as_view(), name='skill_detail'),
+
+    path('jobs/', JobListCreateAPIView.as_view(), name='jobs_list'),
+    path('jobs/<int:pk>/', JobDetailAPIView.as_view(), name='job_detail'),
 
 
     path('auth/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),

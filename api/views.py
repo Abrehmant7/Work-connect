@@ -1,9 +1,20 @@
 from rest_framework.views import APIView
+from rest_framework.generics import (
+    ListCreateAPIView,
+    RetrieveUpdateDestroyAPIView,
+    ListAPIView,
+    RetrieveAPIView
+)
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from recruiter.models import RepresentativeProfile, Company, Post
+from recruiter.models import(
+    RepresentativeProfile,
+    Company,
+    Post,
+    Skill
+) 
 from django.shortcuts import get_object_or_404
 
 from .serializers import (
@@ -14,8 +25,10 @@ from .serializers import (
     ApplicantProfileSerializer,
     CompanySerializer,
     JobSerializer,
-    ProjectSerializer
+    ProjectSerializer,
+    SkillSerializer
 )
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
 
 def get_tokens_for_user(user):
@@ -453,6 +466,94 @@ class CompanyProjectsAPIView(APIView):
             serializer.data,
             status=status.HTTP_200_OK
         )
+
+class SkillListCreateAPIView(ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Skill.objects.all()
+    serializer_class = SkillSerializer
+
+
+class SkillDetailAPIView(RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    queryset = Skill.objects.all()
+    serializer_class = SkillSerializer
+    
+
+class JobListCreateAPIView(ListCreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = JobSerializer
+
+    def get_queryset(self):
+        return Post.objects.filter(post_type='job')
+
+    def perform_create(self, serializer):
+        if self.request.user.user_type != 'representative':
+            raise PermissionDenied('Only representatives can create jobs.')
+
+        representative_profile = getattr(
+            self.request.user,
+            'representative_profile',
+            None
+        )
+
+        if representative_profile is None:
+            raise ValidationError('Representative profile is required.')
+
+        if representative_profile.company is None:
+            raise ValidationError('Representative must belong to a company.')
+
+        serializer.save(
+            post_type='job',
+            company=representative_profile.company,
+            created_by=self.request.user
+        )
+
+class JobDetailAPIView(RetrieveUpdateDestroyAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = JobSerializer
+
+    def get_queryset(self):
+        return Post.objects.filter(post_type='job')
+
+    def perform_update(self, serializer):
+        if self.request.user.user_type != 'representative':
+            raise PermissionDenied('Only representatives can update jobs.')
+
+        representative_profile = getattr(
+            self.request.user,
+            'representative_profile',
+            None
+        )
+
+        if representative_profile is None:
+            raise ValidationError('Representative profile is required.')
+        
+        job = self.get_object()
+
+        if job.created_by != self.request.user:
+            raise PermissionDenied("Only the representative who created the job can update it")
+        
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if self.request.user.user_type != 'representative':
+            raise PermissionDenied('Only representatives can delete jobs.')
+
+        representative_profile = getattr(
+            self.request.user,
+            'representative_profile',
+            None
+        )
+
+        if representative_profile is None:
+            raise ValidationError('Representative profile is required.')
+        
+
+        if instance.created_by != self.request.user:
+            raise PermissionDenied("Only the representative who created the job can delete it")
+        
+        instance.delete_post()
+
 
 
 # GET    /api/skills
